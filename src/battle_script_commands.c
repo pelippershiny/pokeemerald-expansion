@@ -1600,15 +1600,9 @@ static void Cmd_attackcanceler(void)
     }
 
     gHitMarker |= HITMARKER_OBEYS;
-    // Check if no available target present on the field.
-    if (NoTargetPresent(gBattlerAttacker, gCurrentMove)
-        && (!IsTwoTurnsMove(gCurrentMove) || (gBattleMons[gBattlerAttacker].status2 & STATUS2_MULTIPLETURNS)))
+    if (NoTargetPresent(gBattlerAttacker, gCurrentMove) && (!IsTwoTurnsMove(gCurrentMove) || (gBattleMons[gBattlerAttacker].status2 & STATUS2_MULTIPLETURNS)))
     {
-        if (gBattleMoves[gCurrentMove].effect == EFFECT_FLING) // Edge case for removing a mon's item when there is no target available after using Fling.
-            gBattlescriptCurrInstr = BattleScript_FlingFailConsumeItem;
-        else
-            gBattlescriptCurrInstr = BattleScript_FailedFromAtkString;
-
+        gBattlescriptCurrInstr = BattleScript_ButItFailedAtkStringPpReduce;
         if (!IsTwoTurnsMove(gCurrentMove) || (gBattleMons[gBattlerAttacker].status2 & STATUS2_MULTIPLETURNS))
             CancelMultiTurnMoves(gBattlerAttacker);
         return;
@@ -3864,6 +3858,13 @@ void SetMoveEffect(bool32 primary, u32 certain)
                 gBattleMons[gBattlerTarget].status2 |= STATUS2_ESCAPE_PREVENTION;
                 gBattleMons[gBattlerAttacker].status2 |= STATUS2_ESCAPE_PREVENTION;
                 break;
+            case MOVE_EFFECT_SCALE_SHOT:
+                if (!NoAliveMonsForEitherParty())
+                {
+                    BattleScriptPush(gBattlescriptCurrInstr + 1);
+                    gBattlescriptCurrInstr = BattleScript_DefDownSpeedUp;
+                }
+                break;
             case MOVE_EFFECT_BURN_UP:
                 // This seems unnecessary but is done to make it work properly with Parental Bond
                 BattleScriptPush(gBattlescriptCurrInstr + 1);
@@ -6088,12 +6089,6 @@ static void Cmd_moveend(void)
                 gBattleScripting.multihitString[4]++;
                 if (--gMultiHitCounter == 0)
                 {
-                    if (gBattleMoves[gCurrentMove].argument == MOVE_EFFECT_SCALE_SHOT && !NoAliveMonsForEitherParty())
-                    {
-                        BattleScriptPush(gBattlescriptCurrInstr + 1);
-                        gBattlescriptCurrInstr = BattleScript_DefDownSpeedUp;
-                    }
-
                     BattleScriptPushCursor();
                     gBattlescriptCurrInstr = BattleScript_MultiHitPrintStrings;
                     effect = TRUE;
@@ -8874,16 +8869,6 @@ static bool32 ChangeOrderTargetAfterAttacker(void)
     return TRUE;
 }
 
-static u32 CalculateBattlerPartyCount(u32 battler)
-{
-    u32 count;
-    if (GetBattlerSide(battler) == B_SIDE_PLAYER)
-        count = CalculatePlayerPartyCount();
-    else
-        count = CalculateEnemyPartyCount();
-    return count;
-}
-
 static void Cmd_various(void)
 {
     CMD_ARGS(u8 battler, u8 id);
@@ -10686,7 +10671,7 @@ static void Cmd_various(void)
         VARIOUS_ARGS();
         if (gBattleMons[gBattlerAttacker].species == SPECIES_GRENINJA_BATTLE_BOND
             && HasAttackerFaintedTarget()
-            && CalculateBattlerPartyCount(gBattlerTarget) > 1
+            && CalculateEnemyPartyCount() > 1
             && !(gBattleStruct->battleBondTransformed[GET_BATTLER_SIDE2(gBattlerAttacker)] & gBitTable[gBattlerPartyIndexes[gBattlerAttacker]]))
         {
             gBattleStruct->battleBondTransformed[GET_BATTLER_SIDE2(gBattlerAttacker)] |= gBitTable[gBattlerPartyIndexes[gBattlerAttacker]];
@@ -10918,6 +10903,15 @@ static void Cmd_various(void)
             gBattlescriptCurrInstr = cmd->nextInstr;
         else
             gBattlescriptCurrInstr = cmd->failInstr;
+        return;
+    }
+    case VARIOUS_JUMP_IF_CANT_FLING:
+    {
+        VARIOUS_ARGS(const u8 *jumpInstr);
+        if (!CanFling(gActiveBattler))
+            gBattlescriptCurrInstr = cmd->jumpInstr;
+        else
+            gBattlescriptCurrInstr = cmd->nextInstr;
         return;
     }
     case VARIOUS_CURE_CERTAIN_STATUSES:
@@ -14117,13 +14111,12 @@ static void Cmd_trysetfutureattack(void)
 
 static void Cmd_trydobeatup(void)
 {
-#if B_BEAT_UP >= GEN_5
-    CMD_ARGS();
+    CMD_ARGS(const u8 *endInstr, const u8 *failInstr);
 
+#if B_BEAT_UP >= GEN_5
     gBattleStruct->beatUpSlot++;
     gBattlescriptCurrInstr = cmd->nextInstr;
 #else
-    CMD_ARGS(const u8 *endInstr, const u8 *failInstr);
     struct Pokemon *party = GetBattlerParty(gBattlerAttacker);
 
     if (gBattleMons[gBattlerTarget].hp == 0)
@@ -16164,22 +16157,11 @@ void BS_CalcMetalBurstDmg(void)
     }
 }
 
-void BS_JumpIfCantFling(void)
-{
-    NATIVE_ARGS(u8 battler, const u8 *jumpInstr);
-
-    u32 battler = GetBattlerForBattleScript(cmd->battler);
-    if (!CanFling(battler))
-        gBattlescriptCurrInstr = cmd->jumpInstr;
-    else
-        gBattlescriptCurrInstr = cmd->nextInstr;
-}
-
 void BS_JumpIfMoreThanHalfHP(void)
 {
     NATIVE_ARGS(u8 battler, const u8 *jumpInstr);
 
-    u32 battler = GetBattlerForBattleScript(cmd->battler);
+    u8 battler = GetBattlerForBattleScript(cmd->battler);
     if (gBattleMons[battler].hp > (gBattleMons[battler].maxHP + 1) / 2)
         gBattlescriptCurrInstr = cmd->jumpInstr;
     else
