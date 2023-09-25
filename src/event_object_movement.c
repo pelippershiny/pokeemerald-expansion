@@ -9440,6 +9440,7 @@ void GroundEffect_Seaweed(struct ObjectEvent *objEvent, struct Sprite *sprite)
 void GroundEffect_Shadow(struct ObjectEvent *objEvent, struct Sprite *sprite) {
     objEvent->hasShadow = TRUE;
     StartFieldEffectForObjectEvent(FLDEFF_SHADOW, objEvent);
+    SetUpShadow(objEvent, sprite);
 }
 
 static void (*const sGroundEffectFuncs[])(struct ObjectEvent *objEvent, struct Sprite *sprite) = {
@@ -9466,10 +9467,10 @@ static void (*const sGroundEffectFuncs[])(struct ObjectEvent *objEvent, struct S
     GroundEffect_Shadow                 // GROUND_EFFECT_FLAG_SHADOW
 };
 
-static void GroundEffect_Shadow(struct ObjectEvent *objEvent, struct Sprite *sprite)
+/* static void GroundEffect_Shadow(struct ObjectEvent *objEvent, struct Sprite *sprite)
 {
     SetUpShadow(objEvent, sprite);
-}
+} */
 
 static void DoFlaggedGroundEffects(struct ObjectEvent *objEvent, struct Sprite *sprite, u32 flags)
 {
