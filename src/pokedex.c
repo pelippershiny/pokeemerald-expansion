@@ -4334,6 +4334,16 @@ static u8* ConvertMonHeightToImperialString(u32 height)
     u32 inches, feet, index = 0;
 
     inches = (height * 10000) / CM_PER_INCH_FACTOR;
+    u8 buffer[16];
+    u32 inches, feet;
+    u8 i = 0;
+    int offset;
+    u8 result;
+    offset = 0;
+
+    if (gSaveBlock2Ptr->optionsUnitSystem == 0) //Imperial
+    {
+    inches = (height * 10000) / 254;
     if (inches % 10 >= 5)
         inches += 10;
     feet = inches / INCHES_IN_FOOT_FACTOR;
@@ -4359,6 +4369,54 @@ static u8* ConvertMonHeightToImperialString(u32 height)
     heightString[index++] = EOS;
 
     return heightString;
+    buffer[i++] = CHAR_SGL_QUOTE_RIGHT;
+    buffer[i++] = (inches / 10) + CHAR_0;
+    buffer[i++] = (inches % 10) + CHAR_0;
+    buffer[i++] = CHAR_DBL_QUOTE_RIGHT;
+    buffer[i++] = EOS;
+    PrintInfoScreenText(buffer, left, top);
+    }
+    else //Metric
+    {
+        buffer[i++] = EXT_CTRL_CODE_BEGIN;
+        buffer[i++] = EXT_CTRL_CODE_CLEAR_TO;
+        i++;
+        buffer[i++] = CHAR_SPACE;
+        buffer[i++] = CHAR_SPACE;
+        buffer[i++] = CHAR_SPACE;
+        buffer[i++] = CHAR_SPACE;
+        buffer[i++] = CHAR_SPACE;
+
+        result = (height / 1000);
+        if (result == 0)
+        {
+            offset = 6;
+        }
+        else
+        {
+            buffer[i++] = result + CHAR_0;
+        }
+
+        result = (height % 1000) / 100;
+        if (result == 0 && offset != 0)
+        {
+            offset += 6;
+        }
+        else
+        {
+            buffer[i++] = result + CHAR_0;
+        }
+
+        buffer[i++] = (((height % 1000) % 100) / 10) + CHAR_0;
+        buffer[i++] = CHAR_COMMA;
+        buffer[i++] = (((height % 1000) % 100) % 10) + CHAR_0;
+        buffer[i++] = CHAR_SPACE;
+        buffer[i++] = CHAR_m;
+
+        buffer[i++] = EOS;
+        buffer[2] = offset;
+        PrintInfoScreenText(buffer, left, top);   
+    }
 }
 
 static u8* ConvertMonHeightToMetricString(u32 height)
@@ -4376,7 +4434,16 @@ static u8* ConvertMonWeightToImperialString(u32 weight)
     u8* weightString = Alloc(WEIGHT_HEIGHT_STR_MEM);
     bool32 output = FALSE;
     u32 index = 0, lbs = (weight * 100000) / DECAGRAMS_IN_POUND;
+    u8 buffer[16];
+    u8 buffer_metric[18];
+    bool8 output;
+    u8 i = 0;
+    u32 lbs = (weight * 100000) / 4536;
+    int offset = 0;
+    u8 result;
 
+    if (gSaveBlock2Ptr->optionsUnitSystem == 0) //Imperial
+    {
     if (lbs % 10u >= 5)
         lbs += 10;
 
@@ -4425,6 +4492,50 @@ static u8* ConvertMonWeightToImperialString(u32 weight)
     weightString[index++] = EOS;
 
     return weightString;
+    buffer[i++] = CHAR_PERIOD;
+    buffer[i++] = (lbs / 10) + CHAR_0;
+    buffer[i++] = CHAR_SPACE;
+    buffer[i++] = CHAR_l;
+    buffer[i++] = CHAR_b;
+    buffer[i++] = CHAR_s;
+    buffer[i++] = CHAR_PERIOD;
+    buffer[i++] = EOS;
+    PrintInfoScreenText(buffer, left, top);
+    }
+    else //Metric
+    {
+        buffer_metric[i++] = EXT_CTRL_CODE_BEGIN;
+        buffer_metric[i++] = EXT_CTRL_CODE_CLEAR_TO;
+        i++;
+        buffer_metric[i++] = CHAR_SPACE;
+        buffer_metric[i++] = CHAR_SPACE;
+        buffer_metric[i++] = CHAR_SPACE;
+        buffer_metric[i++] = CHAR_SPACE;
+        buffer_metric[i++] = CHAR_SPACE;
+
+        result = (weight / 1000);
+        if (result == 0)
+            offset = 6;
+        else
+            buffer_metric[i++] = result + CHAR_0;
+
+        result = (weight % 1000) / 100;
+        if (result == 0 && offset != 0)
+            offset += 6;
+        else
+            buffer_metric[i++] = result + CHAR_0;
+
+        buffer_metric[i++] = (((weight % 1000) % 100) / 10) + CHAR_0;
+        buffer_metric[i++] = CHAR_COMMA;
+        buffer_metric[i++] = (((weight % 1000) % 100) % 10) + CHAR_0;
+        buffer_metric[i++] = CHAR_SPACE;
+        buffer_metric[i++] = CHAR_k;
+        buffer_metric[i++] = CHAR_g;
+
+        buffer_metric[i++] = EOS;
+        buffer_metric[2] = offset;
+        PrintInfoScreenText(buffer_metric, left, top);
+    }
 }
 
 static u8* ConvertMonWeightToMetricString(u32 weight)
