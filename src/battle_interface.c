@@ -2144,9 +2144,9 @@ s32 MoveBattleBar(u8 battlerId, u8 healthboxSpriteId, u8 whichBar, u8 unused)
         if (currentBarValue == -1)
         {
             gBattleSpritesDataPtr->battleBars[battlerId].currValue = 0;
-            if ((i != 0 || instant) && whichBar == HEALTH_BAR)
-                UpdateHpTextInHealthbox(gHealthboxSpriteIds[battlerId], previousVal, HP_CURRENT, HP_MAX);
-            break;
+            //if ((i != 0 || instant) && whichBar == HEALTH_BAR)
+                //UpdateHpTextInHealthbox(gHealthboxSpriteIds[battlerId], previousVal, HP_CURRENT, maxHP);
+            //break;
         }
     }
 
