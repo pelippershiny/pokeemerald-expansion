@@ -4332,10 +4332,10 @@ static u8* ConvertMonHeightToImperialString(u32 height)
 {
     u8* heightString = Alloc(WEIGHT_HEIGHT_STR_MEM);
     u32 inches, feet, index = 0;
-
+    int left = 0; // o el valor adecuado
+    int top = 0;  // o el valor adecuado
     inches = (height * 10000) / CM_PER_INCH_FACTOR;
     u8 buffer[16];
-    u32 inches, feet;
     u8 i = 0;
     int offset;
     u8 result;
@@ -4417,6 +4417,7 @@ static u8* ConvertMonHeightToImperialString(u32 height)
         buffer[2] = offset;
         PrintInfoScreenText(buffer, left, top);   
     }
+    return heightString;
 }
 
 static u8* ConvertMonHeightToMetricString(u32 height)
@@ -4433,12 +4434,13 @@ static u8* ConvertMonWeightToImperialString(u32 weight)
 {
     u8* weightString = Alloc(WEIGHT_HEIGHT_STR_MEM);
     bool32 output = FALSE;
+    
+    int left = 0; // o el valor adecuado
+    int top = 0;  // o el valor adecuado
     u32 index = 0, lbs = (weight * 100000) / DECAGRAMS_IN_POUND;
     u8 buffer[16];
     u8 buffer_metric[18];
-    bool8 output;
     u8 i = 0;
-    u32 lbs = (weight * 100000) / 4536;
     int offset = 0;
     u8 result;
 
@@ -4536,6 +4538,7 @@ static u8* ConvertMonWeightToImperialString(u32 weight)
         buffer_metric[2] = offset;
         PrintInfoScreenText(buffer_metric, left, top);
     }
+    return weightString;
 }
 
 static u8* ConvertMonWeightToMetricString(u32 weight)

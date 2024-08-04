@@ -252,6 +252,7 @@ static const u8 *const OptionTextRight(u8 menuItem)
     case MENU_MAIN:     return sOptionMenuItemsNamesMain[menuItem];
     case MENU_CUSTOM:   return sOptionMenuItemsNamesCustom[menuItem];
     }
+    return sOptionMenuItemsNamesMain[menuItem];
 }
 
 // Menu left side text conditions
@@ -283,6 +284,7 @@ static bool8 CheckConditions(int selection)
         case MENUITEM_CUSTOM_COUNT:           return TRUE;
         }
     }
+    return TRUE;
 }
 
 // Descriptions
@@ -379,6 +381,7 @@ static const u8 *const OptionTextDescription(void)
             selection = 0;
         return sOptionMenuItemDescriptionsCustom[menuItem][selection];
     }
+    return sOptionMenuItemDescriptionsDisabledMain[menuItem];
 }
 
 static u8 MenuItemCount(void)
@@ -388,6 +391,7 @@ static u8 MenuItemCount(void)
     case MENU_MAIN:     return MENUITEM_MAIN_COUNT;
     case MENU_CUSTOM:   return MENUITEM_CUSTOM_COUNT;
     }
+    return MENUITEM_MAIN_COUNT;
 }
 
 static u8 MenuItemCancel(void)
@@ -397,6 +401,7 @@ static u8 MenuItemCancel(void)
     case MENU_MAIN:     return MENUITEM_MAIN_CANCEL;
     case MENU_CUSTOM:   return MENUITEM_CUSTOM_CANCEL;
     }
+    return MENUITEM_MAIN_CANCEL;
 }
 
 // Main code
@@ -652,7 +657,7 @@ static void Task_OptionMenuFadeIn(u8 taskId)
 
 static void Task_OptionMenuProcessInput(u8 taskId)
 {
-    int i = 0;
+    //int i = 0;
     u8 optionsToDraw = min(OPTIONS_ON_SCREEN , MenuItemCount());
     if (JOY_NEW(A_BUTTON))
     {
@@ -665,14 +670,14 @@ static void Task_OptionMenuProcessInput(u8 taskId)
     }
     else if (JOY_NEW(DPAD_UP))
     {
-        if (sOptions->visibleCursor[sOptions->submenu] == NUM_OPTIONS_FROM_BORDER) // don't advance visible cursor until scrolled to the bottom
+        if (sOptions->submenu < MENU_COUNT && sOptions->visibleCursor[sOptions->submenu] == NUM_OPTIONS_FROM_BORDER) // don't advance visible cursor until scrolled to the bottom
         {
             if (--sOptions->menuCursor[sOptions->submenu] == 0)
                 sOptions->visibleCursor[sOptions->submenu]--;
             else
                 ScrollMenu(1);
         }
-        else
+        else if (sOptions->submenu < MENU_COUNT)
         {
             if (--sOptions->menuCursor[sOptions->submenu] < 0) // Scroll all the way to the bottom.
             {
@@ -691,14 +696,14 @@ static void Task_OptionMenuProcessInput(u8 taskId)
     }
     else if (JOY_NEW(DPAD_DOWN))
     {
-        if (sOptions->visibleCursor[sOptions->submenu] == optionsToDraw-2) // don't advance visible cursor until scrolled to the bottom
+        if (sOptions->submenu < MENU_COUNT && sOptions->visibleCursor[sOptions->submenu] == optionsToDraw-2) // don't advance visible cursor until scrolled to the bottom
         {
             if (++sOptions->menuCursor[sOptions->submenu] == MenuItemCount() - 1)
                 sOptions->visibleCursor[sOptions->submenu]++;
             else
                 ScrollMenu(0);
         }
-        else
+        else if (sOptions->submenu < MENU_COUNT)
         {
             if (++sOptions->menuCursor[sOptions->submenu] >= MenuItemCount()-1) // Scroll all the way to the top.
             {
@@ -773,6 +778,7 @@ static void Task_OptionMenuProcessInput(u8 taskId)
         DrawDescriptionText();
     }
 }
+
 
 static void Task_OptionMenuSave(u8 taskId)
 {
@@ -997,7 +1003,7 @@ static void ReDrawAll(void)
     else
     {
         if (sOptions->arrowTaskId == TASK_NONE)
-            sOptions->arrowTaskId = sOptions->arrowTaskId = AddScrollIndicatorArrowPairParameterized(SCROLL_ARROW_UP, 240 / 2, 20, 110, MenuItemCount() - 1, 110, 110, 0);
+            sOptions->arrowTaskId = AddScrollIndicatorArrowPairParameterized(SCROLL_ARROW_UP, 240 / 2, 20, 110, MenuItemCount() - 1, 110, 110, 0);
 
     }
 
