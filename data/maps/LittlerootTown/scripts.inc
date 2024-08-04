@@ -247,8 +247,43 @@ LittlerootTown_EventScript_SetRivalBirchPosForDexUpgradeFemale::
 	end
 
 LittlerootTown_EventScript_FatMan::
+	lock
+	faceplayer
 	msgbox LittlerootTown_Text_CanUsePCToStoreItems, MSGBOX_NPC
+	giveitem ITEM_DYNAMAX_BAND
+	release
+	setflag B_FLAG_DYNAMAX_BATTLE
+	call LittlerootTown_EventScript_Gigantamax_FatMan
+	release
 	end
+
+LittlerootTown_EventScript_Gigantamax_FatMan:
+    lockall
+    applymovement LOCALID_MOVE_RELEARNER, Common_Movement_FacePlayer
+    waitmovement 0
+    msgbox LittlerootTown_EventScript_Gigantamax_FatMan_Text_SelectPokemonForGigantamax, MSGBOX_DEFAULT
+    special ChooseMonForMoveRelearner  // Abre el menú de selección de equipo
+    waitstate
+    goto_if_eq VAR_0x8004, PARTY_NOTHING_CHOSEN, LittlerootTown_EventScript_Gigantamax_FatMan_NoPokemonSelected
+    togglegigantamaxfactor VAR_0x8004  // Alterna el Factor Gigantamax para el Pokémon seleccionado
+    msgbox LittlerootTown_EventScript_Gigantamax_FatMan_Text_GigantamaxToggled, MSGBOX_DEFAULT
+    releaseall
+    end
+
+LittlerootTown_EventScript_Gigantamax_FatMan_NoPokemonSelected:
+    msgbox LittlerootTown_EventScript_Gigantamax_FatMan_Text_NoPokemonSelected, MSGBOX_DEFAULT
+    releaseall
+    end
+
+LittlerootTown_EventScript_Gigantamax_FatMan_Text_SelectPokemonForGigantamax:
+    .string "Select a Pokémon to toggle\n"
+	.string "Gigantamax factor.$"
+
+LittlerootTown_EventScript_Gigantamax_FatMan_Text_GigantamaxToggled:
+    .string "Gigantamax factor toggled!$"
+
+LittlerootTown_EventScript_Gigantamax_FatMan_Text_NoPokemonSelected:
+    .string "No Pokémon selected.$"
 
 LittlerootTown_EventScript_Boy::
 	msgbox LittlerootTown_Text_BirchSpendsDaysInLab, MSGBOX_NPC
