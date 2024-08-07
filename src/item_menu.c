@@ -879,6 +879,7 @@ static bool8 LoadBagMenu_Graphics(void)
         gBagMenu->graphicsLoadState = 0;
         return TRUE;
     }
+
     return FALSE;
 }
 
@@ -1027,6 +1028,7 @@ static void BagMenu_ItemPrintCallback(u8 windowId, u32 itemIndex, u8 y)
                 BlitBitmapToWindow(windowId, sRegisteredSelect_Gfx, 96, y - 1, 24, 16);
         }
     }
+    
 }
 
 static void PrintItemDescription(int itemIndex)
