@@ -286,6 +286,7 @@ LittlerootTown_EventScript_Gigantamax_FatMan_Text_NoPokemonSelected:
     .string "No Pokémon selected.$"
 
 LittlerootTown_EventScript_Boy::
+	setflag FLAG_SYS_DEXNAV_GET
 	msgbox LittlerootTown_Text_BirchSpendsDaysInLab, MSGBOX_NPC
 	end
 
